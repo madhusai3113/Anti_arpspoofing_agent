@@ -97,7 +97,7 @@ if tar:
     k= raw_input("[1]-->blacklist the device/n"
                  "[2]-->arp spoof the device")
     if k == "1":
-        black = subprocess.Popen(('/sbin/iptables', '-A', 'INPUT', '-m' ,'mac', '--mac-source' ,tar[0], '-j'), stdout=subprocess.PIPE)
+        black = subprocess.Popen(('/sbin/iptables', '-A', 'INPUT', '-m' ,'mac', '--mac-source' ,tar[0], '-j','DROP'), stdout=subprocess.PIPE)
         black = black.communicate()[0]
         print black
         print "ip blacklist from sending packets"
