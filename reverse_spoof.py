@@ -73,7 +73,6 @@ def sendPacket(my_mac, gateway_ip, target_ip, target_mac):
 
     sendp(x=packet, verbose=False)
 
-    #broadcastPacket()
 
 def local_net():
     try :
@@ -89,15 +88,24 @@ else:
     my_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET]
     my_mac = netifaces.ifaddresses('eth0')[netifaces.AF_LINK]
 
-print type(my_ip[0]['addr']),my_mac[0]['addr']
+#print type(my_ip[0]['addr']),my_mac[0]['addr']
 gws=netifaces.gateways()
 def_gateip = gws['default'][netifaces.AF_INET][0]
 tar = scan()
 print tar
 if tar:
-    print "sp"
-    while True:
-        sendPacket(str(my_mac[0]['addr']),str(def_gateip),str(tar[1]),str(tar[0]))
-    print "sent"
+    k= raw_input("[1]-->blacklist the device/n"
+                 "[2]-->arp spoof the device")
+    if k == "1":
+        black = subprocess.Popen(('/sbin/iptables', '-A', 'INPUT', '-m' ,'mac', '--mac-source' ,tar[0], '-j'), stdout=subprocess.PIPE)
+        black = black.communicate()[0]
+        print black
+        print "ip blacklist from sending packets"
+    elif k=="2":
+        print "spoofing back"
+        while True:
+            sendPacket(str(my_mac[0]['addr']),str(def_gateip),str(tar[1]),str(tar[0]))
+        print "sent"
+    else:print "incorrect option"
 else:
     print "no spoofing devices"
