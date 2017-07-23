@@ -1,5 +1,2 @@
-# reverse_spoof
-script to automatically check if system is ARP spoofed.
-#options:
-1.Blacklist the attacker device
-2.ARP spoof the attackers device
+# Anti spoof agent
+script to automatically detect if system is ARP spoofed,the spoofer is dropped from ip table.
