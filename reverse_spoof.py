@@ -1,7 +1,8 @@
 import subprocess
 import re
 import netifaces
-
+import time
+import os
 import sys, logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import (
@@ -81,31 +82,32 @@ def local_net():
     except:
         return True
 
-if(local_net()):
-    my_ip = netifaces.ifaddresses('wlan0')[netifaces.AF_INET]
-    my_mac = netifaces.ifaddresses('wlan0')[netifaces.AF_LINK]
-else:
-    my_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET]
-    my_mac = netifaces.ifaddresses('eth0')[netifaces.AF_LINK]
+def main():
+    intf = ''
+    if(local_net()):
+        my_ip = netifaces.ifaddresses('wlan0')[netifaces.AF_INET]
+        my_mac = netifaces.ifaddresses('wlan0')[netifaces.AF_LINK]
+        intf = 'wlan0'
+    else:
+        my_ip = netifaces.ifaddresses('eth0')[netifaces.AF_INET]
+        my_mac = netifaces.ifaddresses('eth0')[netifaces.AF_LINK]
+        intf = 'eth0'
 
-#print type(my_ip[0]['addr']),my_mac[0]['addr']
-gws=netifaces.gateways()
-def_gateip = gws['default'][netifaces.AF_INET][0]
-tar = scan()
-print tar
-if tar:
-    k= raw_input("[1]-->blacklist the device/n"
-                 "[2]-->arp spoof the device")
-    if k == "1":
-        black = subprocess.Popen(('/sbin/iptables', '-A', 'INPUT', '-m' ,'mac', '--mac-source' ,tar[0], '-j','DROP'), stdout=subprocess.PIPE)
-        black = black.communicate()[0]
-        print black
-        print "ip blacklist from sending packets"
-    elif k=="2":
-        print "spoofing back"
-        while True:
-            sendPacket(str(my_mac[0]['addr']),str(def_gateip),str(tar[1]),str(tar[0]))
-        print "sent"
-    else:print "incorrect option"
-else:
-    print "no spoofing devices"
+    #print type(my_ip[0]['addr']),my_mac[0]['addr']
+    gws=netifaces.gateways()
+    def_gateip = gws['default'][netifaces.AF_INET][0]
+    tar = scan()
+
+
+    if tar:
+        black = subprocess.Popen(('arptables', '-A', 'INPUT' ,'--source-mac' ,tar[0] ,'-j' ,'DROP'), stdout=subprocess.PIPE)
+        restart = subprocess.Popen(('ifconfig',intf,'down'),stdout=subprocess.PIPE)
+        restart = subprocess.Popen(('ifconfig',intf,'up'),stdout=subprocess.PIPE)
+        notif = 'notify-send "re-connected via %s"'%(intf)
+        os.system(notif)
+    else:
+        print "no spoofing devices"
+
+while True:
+    main()
+    time.sleep(20)
